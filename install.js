@@ -1,5 +1,10 @@
+import util from 'util';
+import { exec } from 'child_process';
+import ora from 'ora';
 import inquirer from 'inquirer';
-import { execSync } from 'child_process';
+
+const execAsync = util.promisify(exec);
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -91,19 +96,25 @@ async function runSetup() {
   }
 
   if (setupPython) {
-    console.log('Setting up Python virtual environment...');
-    const venvPath = path.join(__dirname, 'venv');
-    if (!fs.existsSync(venvPath)) {
-      execSync('python3 -m venv venv', { stdio: 'inherit', cwd: __dirname });
-    }
-    
-    console.log('Installing dependencies (laya, fastapi, uvicorn)...');
-    const pipCommand = process.platform === 'win32' 
-      ? path.join(venvPath, 'Scripts', 'pip')
-      : path.join(venvPath, 'bin', 'pip');
+    const spinner = ora('Setting up Python virtual environment...').start();
+    try {
+      const venvPath = path.join(__dirname, 'venv');
+      if (!fs.existsSync(venvPath)) {
+        await execAsync('python3 -m venv venv', { cwd: __dirname });
+      }
       
-    execSync(`${pipCommand} install fastapi uvicorn laya`, { stdio: 'inherit', cwd: __dirname });
-    console.log('Setup complete!');
+      spinner.text = 'Installing dependencies (laya, fastapi, uvicorn)...';
+      const pipCommand = process.platform === 'win32' 
+        ? path.join(venvPath, 'Scripts', 'pip')
+        : path.join(venvPath, 'bin', 'pip');
+        
+      await execAsync(`${pipCommand} install fastapi uvicorn laya`, { cwd: __dirname });
+      spinner.succeed('Setup complete!');
+    } catch (error) {
+      spinner.fail('Setup failed during python environment creation or pip install.');
+      console.error(error.stdout || error.message);
+      if (error.stderr) console.error(error.stderr);
+    }
   } else {
     console.log('Skipping python setup. Please ensure laya is available in your python environment.');
   }
