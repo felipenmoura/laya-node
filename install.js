@@ -33,7 +33,7 @@ async function runSetup() {
     if (portMatch) currentPort = portMatch[1];
   }
 
-  const { port, apiKeyChoice, customApiKey, setupPython } = await inquirer.prompt([
+  const { port, apiKeyChoice, customApiKey, setupPython, downloadModel } = await inquirer.prompt([
     {
       type: 'input',
       name: 'port',
@@ -60,6 +60,12 @@ async function runSetup() {
       type: 'confirm',
       name: 'setupPython',
       message: 'Do you want to automatically setup the python environment (venv) and install laya?',
+      default: true
+    },
+    {
+      type: 'confirm',
+      name: 'downloadModel',
+      message: 'Do you want to download the Laya model immediately?',
       default: true
     }
   ]);
@@ -117,6 +123,23 @@ async function runSetup() {
     }
   } else {
     console.log('Skipping python setup. Please ensure laya is available in your python environment.');
+  }
+
+  if (downloadModel) {
+    const spinner = ora('Downloading Laya model checkpoints...').start();
+    try {
+      const venvPath = path.join(__dirname, 'venv');
+      const pythonCommand = fs.existsSync(venvPath)
+        ? (process.platform === 'win32' ? path.join(venvPath, 'Scripts', 'python') : path.join(venvPath, 'bin', 'python'))
+        : 'python3';
+      
+      await execAsync(`${pythonCommand} -c "import warnings; warnings.filterwarnings('ignore'); from laya import Router; Router(preload=True)"`, { cwd: __dirname });
+      spinner.succeed('Model downloaded successfully!');
+    } catch (error) {
+      spinner.fail('Failed to download the model.');
+      console.error(error.stdout || error.message);
+      if (error.stderr) console.error(error.stderr);
+    }
   }
 }
 

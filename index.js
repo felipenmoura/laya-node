@@ -34,12 +34,57 @@ const pythonProcess = spawn(command, ['server:app', '--port', PYTHON_PORT.toStri
   stdio: ['ignore', 'pipe', 'pipe']
 });
 
+let warmedUp = false;
+async function warmupModel() {
+  if (warmedUp) return;
+  warmedUp = true;
+  console.log('\x1b[36m⏳ Waking up the Laya model. This might take a moment if weights are loading...\x1b[0m');
+  try {
+    const res = await fetch(`http://127.0.0.1:${PORT}/predict`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(SECRET_API_KEY ? { 'Authorization': `Bearer ${SECRET_API_KEY}` } : {})
+      },
+      body: JSON.stringify({
+        state: "Warmup test",
+        questions: { "status": { "type": "choice", "instructions": "Is it working?", "criteria": {"yes": "yes", "no": "no"} } }
+      })
+    });
+    
+    if (res.ok) {
+      console.log('\n\x1b[32m✔ Laya model is warmed up and the HTTP service is ready to receive requests!\x1b[0m\n');
+    } else {
+      console.log('\x1b[33m⚠ Model warmup returned a non-OK status, but the server is running.\x1b[0m\n');
+    }
+  } catch (e) {
+    console.error('\x1b[31m✖ Failed to warmup the model:\x1b[0m', e.message, '\n');
+  }
+}
+
 pythonProcess.stdout.on('data', (data) => {
-  console.log(`[Laya Engine]: ${data.toString().trim()}`);
+  // Hide standard stdout to keep terminal clean
 });
 
 pythonProcess.stderr.on('data', (data) => {
-  console.error(`[Laya Engine Error]: ${data.toString().trim()}`);
+  const msg = data.toString().trim();
+  
+  if (msg.includes('Application startup complete.')) {
+    warmupModel();
+  }
+  
+  // Hide INFO and specific verbose warnings to keep terminal clean
+  if (msg.includes('INFO:') || msg.includes('NotOpenSSLWarning') || msg.includes('MPS autocast') || msg.includes('UserWarning:')) {
+    return;
+  } else if (msg.includes('WARNING:')) {
+    console.log(`\x1b[33m[Laya Engine Warning]: ${msg}\x1b[0m`);
+  } else if (msg.includes('%|') || msg.includes('it/s')) {
+    // Let tqdm progress bars for downloads show through, but formatted
+    process.stdout.write(`\r\x1b[36m${msg}\x1b[0m`);
+  } else {
+    // Only show real errors
+    console.error(`\x1b[31m[Laya Engine Error]: ${msg}\x1b[0m`);
+  }
 });
 
 pythonProcess.on('close', (code) => {
@@ -75,7 +120,27 @@ app.listen(PORT, () => {
   if (SECRET_API_KEY) {
     console.log(`API Key protection is ENABLED. Please send "Authorization: Bearer <your-key>"`);
   }
-  console.log(`You can make requests to http://localhost:${PORT}/predict`);
+  console.log(`You can make requests to http://localhost:${PORT}/predict\n`);
+  
+  const authHeader = SECRET_API_KEY ? ` \\\n  -H "\x1b[33mAuthorization: Bearer <your-secret-api-key>\x1b[0m"` : '';
+  const curlExample = 
+    `\x1b[36mcurl\x1b[0m -X POST \x1b[32mhttp://localhost:${PORT}/predict\x1b[0m \\\n` +
+    `  -H \x1b[33m"Content-Type: application/json"\x1b[0m${authHeader} \\\n` +
+    `  -d \x1b[33m'{\n` +
+    `    "state": "The app crashes on startup",\n` +
+    `    "questions": {\n` +
+    `      "issue": {\n` +
+    `        "type": "choice",\n` +
+    `        "instructions": "What is the issue?",\n` +
+    `        "criteria": {\n` +
+    `          "bug": "crash or error",\n` +
+    `          "feature": "new request"\n` +
+    `        }\n` +
+    `      }\n` +
+    `    }\n` +
+    `  }'\x1b[0m\n`;
+
+  console.log(`\x1b[1mExample Request:\x1b[0m\n${curlExample}`);
 });
 
 // Clean up child process on exit
