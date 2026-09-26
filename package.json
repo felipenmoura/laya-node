@@ -1,0 +1,17 @@
+{
+  "name": "laya-node",
+  "version": "1.0.0",
+  "description": "Node wrapper for laya text classification",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "postinstall": "node install.js"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.4",
+    "express": "^4.21.0",
+    "http-proxy-middleware": "^3.0.0",
+    "inquirer": "^14.2.2"
+  }
+}
