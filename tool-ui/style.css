@@ -14,6 +14,7 @@
     --primary-hover: #2563eb;
     --input-bg: #f9fafb;
     --input-border: #d1d5db;
+    --card-bg: #f8fafc;
     --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
@@ -33,6 +34,7 @@
     --primary-hover: #60a5fa;
     --input-bg: #0f172a;
     --input-border: #475569;
+    --card-bg: #0f172a;
     --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
 }
 
@@ -94,9 +96,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     background-color: var(--btn-bg);
     border: 1px solid var(--border-color);
     color: var(--btn-icon);
@@ -210,6 +212,7 @@ body {
     font-size: 0.9rem;
     transition: border-color 0.2s;
     outline: none;
+    width: 100%;
 }
 
 .form-select:focus, .form-input:focus {
@@ -219,6 +222,7 @@ body {
 .secondary-btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     background-color: var(--btn-bg);
     border: 1px solid var(--border-color);
@@ -265,13 +269,59 @@ body {
     flex: 2;
 }
 
-.questions-placeholder {
-    padding: 20px;
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.9rem;
+/* Question Cards */
+#questions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.question-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.q-header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.q-header .q-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.q-body {
+    display: flex;
+    gap: 12px;
+}
+
+.q-inst {
+    flex: 2;
+}
+
+.q-type {
+    flex: 1;
+}
+
+.q-criteria-container {
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.criterion-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 /* Footer */
@@ -328,4 +378,112 @@ body {
     word-break: break-all;
     border: 1px solid #1e293b;
     overflow-y: auto;
+}
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--panel-bg);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--btn-bg);
+}
+
+.modal-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+    border-bottom: 2px solid transparent;
+}
+
+.modal-tab:hover {
+    color: var(--text-main);
+    background-color: var(--panel-bg);
+}
+
+.modal-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background-color: var(--panel-bg);
+}
+
+.modal-body {
+    display: none;
+    padding: 20px;
+    overflow-y: auto;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.modal-body.active-tab-content {
+    display: flex;
+}
+
+.saved-test-item {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.saved-test-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.saved-test-item h4 {
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+.saved-test-item p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
 }

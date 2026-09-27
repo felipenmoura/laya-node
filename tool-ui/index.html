@@ -16,6 +16,9 @@
                 <h1>Laya node tool</h1>
             </div>
             <div class="header-right">
+                <button id="load-btn" class="icon-btn" title="Library & Templates" aria-label="Library & Templates">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </button>
                 <button id="theme-btn" class="icon-btn" title="Toggle Theme" aria-label="Toggle Theme">
                     <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <!-- Default icon is injected via JS -->
@@ -34,6 +37,19 @@
         <main class="main-content">
             <div class="panel left-panel">
                 <h2>Input & Configuration</h2>
+
+                <!-- Test Profile -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3>Test Profile</h3>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <input type="text" id="test-name" class="form-input" placeholder="Test Name (e.g. Refund Request)">
+                        <input type="text" id="test-description" class="form-input" placeholder="Short description (Optional)">
+                    </div>
+                </div>
+                
+                <hr class="divider">
                 
                 <!-- State Section -->
                 <div class="section">
@@ -68,15 +84,15 @@
                 <hr class="divider">
 
                 <!-- Questions Section -->
-                <div class="section">
+                <div class="section" id="questions-section">
                     <div class="section-header">
                         <h3>Questions</h3>
-                        <button class="secondary-btn">
+                        <button id="add-question-btn" class="secondary-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Add Question
                         </button>
                     </div>
-                    <div class="questions-placeholder">
-                        <p>Questions will be added here...</p>
+                    <div id="questions-container">
+                        <!-- Questions will be dynamically added here -->
                     </div>
                 </div>
             </div>
@@ -108,6 +124,26 @@
                 <a href="https://dex01.com.br" target="_blank" rel="noopener noreferrer" class="footer-link">DEx01</a>
             </div>
         </footer>
+    </div>
+    
+    <!-- Load Modal -->
+    <div id="load-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Library</h2>
+                <button id="close-modal-btn" class="icon-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div class="modal-tabs">
+                <button class="modal-tab active" data-tab="load-tab">Load Saved</button>
+                <button class="modal-tab" data-tab="templates-tab">Templates</button>
+            </div>
+            <div class="modal-body active-tab-content" id="load-tab">
+                <!-- Tests will be listed here -->
+            </div>
+            <div class="modal-body" id="templates-tab">
+                <!-- Templates will be listed here -->
+            </div>
+        </div>
     </div>
     
     <script src="script.js"></script>
