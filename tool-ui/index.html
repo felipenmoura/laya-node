@@ -34,11 +34,64 @@
         <main class="main-content">
             <div class="panel left-panel">
                 <h2>Input & Configuration</h2>
-                <!-- Panel content will be built later -->
+                
+                <!-- State Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3>State</h3>
+                        <select id="state-type" class="form-select">
+                            <option value="text">Text</option>
+                            <option value="object">Object</option>
+                        </select>
+                    </div>
+                    
+                    <div id="state-text-container" class="state-container active">
+                        <textarea id="state-text-input" class="form-input" rows="4" placeholder="Enter state text here..."></textarea>
+                    </div>
+                    
+                    <div id="state-object-container" class="state-container">
+                        <div id="kv-pairs">
+                            <div class="kv-pair">
+                                <input type="text" class="form-input kv-key" placeholder="Key (e.g. subject)">
+                                <input type="text" class="form-input kv-value" placeholder="Value">
+                                <button class="icon-btn remove-kv" title="Remove" aria-label="Remove">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button id="add-kv-btn" class="secondary-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Add Field
+                        </button>
+                    </div>
+                </div>
+                
+                <hr class="divider">
+
+                <!-- Questions Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3>Questions</h3>
+                        <button class="secondary-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Add Question
+                        </button>
+                    </div>
+                    <div class="questions-placeholder">
+                        <p>Questions will be added here...</p>
+                    </div>
+                </div>
             </div>
+
+            <!-- Central Action Button -->
+            <div class="center-action">
+                <button id="execute-btn" class="execute-btn play-btn" title="Execute Prompt">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                </button>
+            </div>
+
             <div class="panel right-panel">
                 <h2>Analysis & Results</h2>
-                <!-- Panel content will be built later -->
                 <pre id="output">Run a test to see the output here...</pre>
             </div>
         </main>

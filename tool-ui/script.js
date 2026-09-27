@@ -38,15 +38,78 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // Run Test Action
+    // State UI Management
     // ==========================================
-    document.getElementById('test-btn').addEventListener('click', async () => {
+    const stateTypeSelect = document.getElementById('state-type');
+    const stateTextContainer = document.getElementById('state-text-container');
+    const stateObjectContainer = document.getElementById('state-object-container');
+    const addKvBtn = document.getElementById('add-kv-btn');
+    const kvPairsContainer = document.getElementById('kv-pairs');
+
+    stateTypeSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'text') {
+            stateTextContainer.classList.add('active');
+            stateObjectContainer.classList.remove('active');
+        } else {
+            stateTextContainer.classList.remove('active');
+            stateObjectContainer.classList.add('active');
+        }
+    });
+
+    function createKvPair() {
+        const div = document.createElement('div');
+        div.className = 'kv-pair';
+        div.innerHTML = `
+            <input type="text" class="form-input kv-key" placeholder="Key (e.g. subject)">
+            <input type="text" class="form-input kv-value" placeholder="Value">
+            <button class="icon-btn remove-kv" title="Remove" aria-label="Remove">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        `;
+        div.querySelector('.remove-kv').addEventListener('click', () => {
+            if (kvPairsContainer.children.length > 1) {
+                div.remove();
+            }
+        });
+        return div;
+    }
+
+    // Attach listener to default remove button
+    document.querySelector('.remove-kv').addEventListener('click', function() {
+        if (kvPairsContainer.children.length > 1) {
+            this.parentElement.remove();
+        }
+    });
+
+    addKvBtn.addEventListener('click', () => {
+        kvPairsContainer.appendChild(createKvPair());
+    });
+
+    // ==========================================
+    // Execution
+    // ==========================================
+    async function runPrediction() {
         const outputEl = document.getElementById('output');
-        const btn = document.getElementById('test-btn');
+        const executeBtn = document.getElementById('execute-btn');
         
-        btn.style.opacity = '0.7';
-        btn.style.transform = 'scale(0.95)';
+        executeBtn.style.opacity = '0.7';
+        executeBtn.style.transform = 'translate(-50%, -50%) scale(0.95)';
         outputEl.textContent = "Running prediction via Laya Router...";
+
+        // Extract State Payload
+        let statePayload;
+        if (stateTypeSelect.value === 'text') {
+            statePayload = document.getElementById('state-text-input').value;
+        } else {
+            statePayload = {};
+            document.querySelectorAll('.kv-pair').forEach(pair => {
+                const key = pair.querySelector('.kv-key').value.trim();
+                const value = pair.querySelector('.kv-value').value;
+                if (key) {
+                    statePayload[key] = value;
+                }
+            });
+        }
 
         try {
             const response = await fetch('/api/predict', {
@@ -55,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    state: "The system is completely down and I can't log in.",
+                    state: statePayload || "The system is completely down and I can't log in.",
                     questions: {
                         urgency: {
                             type: "score",
@@ -75,8 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             outputEl.textContent = `Error: ${err.message}`;
         } finally {
-            btn.style.opacity = '1';
-            btn.style.transform = '';
+            executeBtn.style.opacity = '1';
+            executeBtn.style.transform = '';
         }
-    });
+    }
+
+    document.getElementById('test-btn').addEventListener('click', runPrediction);
+    document.getElementById('execute-btn').addEventListener('click', runPrediction);
 });
