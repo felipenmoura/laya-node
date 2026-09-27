@@ -73,6 +73,18 @@ pnpm stop
 npm run stop
 ```
 
+### Starting the Studio UI
+
+To start the built-in visual Studio UI for testing prompts and configurations:
+```bash
+pnpm start:studio
+# or
+npm run start:studio
+```
+
+You can also start the studio at the same time with the main service:  
+`pnpm start --studio 4001`
+
 ### Running with Docker
 
 You can easily containerize this wrapper and run it anywhere using Docker. The included `Dockerfile` will automatically fetch the model weights during the build phase so container startups remain fast.

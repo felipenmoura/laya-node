@@ -129,10 +129,19 @@
                     </div>
                 </div>
                 <div id="results-table-view" style="display: none;"></div>
-                <pre id="output" style="display: none;"></pre>
-                <pre id="output-curl" style="display: none;"></pre>
-                <pre id="output-fetch" style="display: none;"></pre>
-                <pre id="output-placeholder">Run a test to see the output here...</pre>
+                <div class="code-box-wrapper" id="output-wrapper" style="display: none;">
+                    <pre id="output" class="code-box"></pre>
+                    <button class="copy-btn" title="Copy to clipboard">Copy</button>
+                </div>
+                <div class="code-box-wrapper" id="output-curl-wrapper" style="display: none;">
+                    <pre id="output-curl" class="code-box"></pre>
+                    <button class="copy-btn" title="Copy to clipboard">Copy</button>
+                </div>
+                <div class="code-box-wrapper" id="output-fetch-wrapper" style="display: none;">
+                    <pre id="output-fetch" class="code-box"></pre>
+                    <button class="copy-btn" title="Copy to clipboard">Copy</button>
+                </div>
+                <pre id="output-placeholder" class="code-box">Run a test to see the output here...</pre>
             </div>
         </main>
 

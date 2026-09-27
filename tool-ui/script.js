@@ -440,15 +440,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const outputEl = document.getElementById('output');
     const outputCurl = document.getElementById('output-curl');
     const outputFetch = document.getElementById('output-fetch');
+    
+    const outputWrapper = document.getElementById('output-wrapper');
+    const outputCurlWrapper = document.getElementById('output-curl-wrapper');
+    const outputFetchWrapper = document.getElementById('output-fetch-wrapper');
     const outputPlaceholder = document.getElementById('output-placeholder');
+
+    let serverPort = '3000';
+    fetch('/api/config')
+        .then(res => res.json())
+        .then(data => {
+            if (data.port) serverPort = data.port;
+        })
+        .catch(err => console.warn('Failed to load server config', err));
 
     radioInputs.forEach(radio => {
         radio.addEventListener('change', (e) => {
             const val = e.target.value;
             resultsTableView.style.display = val === 'answers' ? 'block' : 'none';
-            outputEl.style.display = val === 'source' ? 'block' : 'none';
-            outputCurl.style.display = val === 'curl' ? 'block' : 'none';
-            outputFetch.style.display = val === 'fetch' ? 'block' : 'none';
+            outputWrapper.style.display = val === 'source' ? 'flex' : 'none';
+            outputCurlWrapper.style.display = val === 'curl' ? 'flex' : 'none';
+            outputFetchWrapper.style.display = val === 'fetch' ? 'flex' : 'none';
+        });
+    });
+
+    // Setup Copy Buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const pre = e.target.previousElementSibling;
+            if (pre && pre.tagName === 'PRE') {
+                navigator.clipboard.writeText(pre.textContent).then(() => {
+                    const originalText = btn.textContent;
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => { btn.textContent = originalText; }, 2000);
+                });
+            }
         });
     });
 
@@ -459,14 +485,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }, null, 2);
 
         // Curl
-        const curlSnippet = `curl -X POST http://localhost:3000/predict \\
+        const curlSnippet = `curl -X POST http://localhost:${serverPort}/predict \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_SECRET_API_KEY" \\
   -d '${payloadStr.replace(/'/g, "'\\''")}'`;
         outputCurl.textContent = curlSnippet;
 
         // Fetch
-        const fetchSnippet = `fetch('http://localhost:3000/predict', {
+        const fetchSnippet = `fetch('http://localhost:${serverPort}/predict', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -548,9 +574,9 @@ document.addEventListener('DOMContentLoaded', () => {
         outputPlaceholder.textContent = "Compiling payload and contacting Laya Router...";
         outputPlaceholder.style.display = 'block';
         resultsTableView.style.display = 'none';
-        outputEl.style.display = 'none';
-        outputCurl.style.display = 'none';
-        outputFetch.style.display = 'none';
+        outputWrapper.style.display = 'none';
+        outputCurlWrapper.style.display = 'none';
+        outputFetchWrapper.style.display = 'none';
         resultsViewRadios.style.display = 'none';
 
         // Extract State Payload
@@ -648,18 +674,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Default to table view
             document.querySelector('input[name="results-view"][value="answers"]').checked = true;
             resultsTableView.style.display = 'block';
-            outputEl.style.display = 'none';
-            outputCurl.style.display = 'none';
-            outputFetch.style.display = 'none';
+            outputWrapper.style.display = 'none';
+            outputCurlWrapper.style.display = 'none';
+            outputFetchWrapper.style.display = 'none';
             outputPlaceholder.style.display = 'none';
             resultsViewRadios.style.display = 'flex';
 
         } catch (err) {
             outputPlaceholder.style.display = 'block';
             resultsTableView.style.display = 'none';
-            outputEl.style.display = 'none';
-            outputCurl.style.display = 'none';
-            outputFetch.style.display = 'none';
+            outputWrapper.style.display = 'none';
+            outputCurlWrapper.style.display = 'none';
+            outputFetchWrapper.style.display = 'none';
             resultsViewRadios.style.display = 'none';
             outputPlaceholder.textContent = `Error: ${err.message}`;
         } finally {

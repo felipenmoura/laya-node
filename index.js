@@ -37,8 +37,19 @@ if (process.argv.includes('--stop')) {
 
 const isDaemonArg = process.argv.includes('-D');
 const isDaemonChild = process.argv.includes('--is-daemon-child');
-const toolArgIndex = process.argv.indexOf('--tool');
-const toolPort = toolArgIndex !== -1 ? parseInt(process.argv[toolArgIndex + 1], 10) : null;
+
+const onlyStudioIndex = process.argv.indexOf('--only-studio');
+const isOnlyStudio = onlyStudioIndex !== -1;
+
+let toolPort = null;
+if (isOnlyStudio) {
+  toolPort = process.argv[onlyStudioIndex + 1] ? parseInt(process.argv[onlyStudioIndex + 1], 10) : 4001;
+  if (isNaN(toolPort)) toolPort = 4001;
+} else {
+  const toolArgIndex = process.argv.indexOf('--studio');
+  toolPort = toolArgIndex !== -1 ? parseInt(process.argv[toolArgIndex + 1], 10) : null;
+  if (toolArgIndex !== -1 && isNaN(toolPort)) toolPort = 4001;
+}
 
 
 if (isDaemonArg) {
@@ -72,6 +83,47 @@ if (isDaemonArg) {
 const PORT = process.env.PORT || 4000;
 const PYTHON_PORT = parseInt(PORT, 10) + 1; // dynamically assign python port based on node port
 const SECRET_API_KEY = process.env.SECRET_API_KEY;
+
+if (isOnlyStudio) {
+  const toolApp = express();
+  toolApp.use(express.static(path.join(__dirname, 'tool-ui')));
+  toolApp.use(express.json());
+
+  toolApp.post('/api/predict', async (req, res) => {
+    try {
+      const fetchParams = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body)
+      };
+      if (SECRET_API_KEY) {
+        fetchParams.headers['Authorization'] = `Bearer ${SECRET_API_KEY}`;
+      }
+
+      const response = await fetch(`http://127.0.0.1:${PORT}/predict`, fetchParams);
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to communicate with Laya server.', details: err.message });
+    }
+  });
+
+  toolApp.get('/api/config', (req, res) => {
+    res.json({ port: PORT });
+  });
+
+  toolApp.listen(toolPort, () => {
+    console.log(`\n╭────────────────────────────────────────╮`);
+    console.log(`│ \x1b[94mi\x1b[0m Studio Summary                       │`);
+    console.log(`├───────────┬────────────────────────────┤`);
+    console.log(`│ Studio    │ \x1b[33m${toolPort.toString().padEnd(26)}\x1b[0m │`);
+    console.log(`│ API URL   │ \x1b[94m${`http://127.0.0.1:${PORT}`.padEnd(26)}\x1b[0m │`);
+    console.log(`╰───────────┴────────────────────────────╯\n`);
+  });
+
+  // Suspend the parent process from running the rest of the server logic
+  await new Promise(() => {});
+}
 
 // Path to the python executable
 const venvPath = path.join(__dirname, 'venv');
@@ -190,31 +242,7 @@ app.use('/', createProxyMiddleware({
 }));
 
 const server = app.listen(PORT, () => {
-  console.log(`Laya Node wrapper is running on http://localhost:${PORT}`);
-  if (SECRET_API_KEY) {
-    console.log(`API Key protection is ENABLED. Please send "Authorization: Bearer <your-key>"`);
-  }
-  console.log(`You can make requests to http://localhost:${PORT}/predict\n`);
-  
-  const authHeader = SECRET_API_KEY ? ` \\\n  -H "\x1b[33mAuthorization: Bearer <your-secret-api-key>\x1b[0m"` : '';
-  const curlExample = 
-    `\x1b[36mcurl\x1b[0m -X POST \x1b[32mhttp://localhost:${PORT}/predict\x1b[0m \\\n` +
-    `  -H \x1b[33m"Content-Type: application/json"\x1b[0m${authHeader} \\\n` +
-    `  -d \x1b[33m'{\n` +
-    `    "state": "The app crashes on startup",\n` +
-    `    "questions": {\n` +
-    `      "issue": {\n` +
-    `        "type": "choice",\n` +
-    `        "instructions": "What is the issue?",\n` +
-    `        "criteria": {\n` +
-    `          "bug": "crash or error",\n` +
-    `          "feature": "new request"\n` +
-    `        }\n` +
-    `      }\n` +
-    `    }\n` +
-    `  }'\x1b[0m\n`;
-
-  console.log(`\x1b[1mExample Request:\x1b[0m\n${curlExample}`);
+  // Server started
 });
 
 server.on('error', (err) => {
@@ -242,7 +270,7 @@ if (toolPort) {
       if (SECRET_API_KEY) {
         fetchParams.headers['Authorization'] = `Bearer ${SECRET_API_KEY}`;
       }
-      
+
       const response = await fetch(`http://127.0.0.1:${PORT}/predict`, fetchParams);
       const data = await response.json();
       res.status(response.status).json(data);
@@ -250,11 +278,53 @@ if (toolPort) {
       res.status(500).json({ error: 'Failed to communicate with Laya server.', details: err.message });
     }
   });
+  toolApp.get('/api/config', (req, res) => {
+    res.json({ port: PORT });
+  });
 
   toolApp.listen(toolPort, () => {
-    console.log(`\x1b[32m✔ UI Tool is running on http://localhost:${toolPort}\x1b[0m\n`);
+    // Tool started
   });
 }
+
+setTimeout(() => {
+  const ipAddress = '127.0.0.1';
+  const portStr = PORT.toString();
+  const urlStr = `http://${ipAddress}:${portStr}`;
+  const uiStr = toolPort ? `${toolPort}` : '--';
+  
+  let secretStr = '--';
+  if (SECRET_API_KEY) {
+    if (SECRET_API_KEY.length >= 8) {
+      secretStr = SECRET_API_KEY.slice(0, 4) + '•'.repeat(18) + SECRET_API_KEY.slice(-4);
+    } else {
+      secretStr = '*'.repeat(26);
+    }
+  }
+  const warmedStr = process.argv.includes('--no-warm') ? 'NO' : 'YES';
+
+  const tableStr = `
+╭────────────────────────────────────────╮
+│ \x1b[94mi\x1b[0m Summary                              │
+├───────────┬────────────────────────────┤
+│ API URL   │ \x1b[94m${urlStr.padEnd(26)}\x1b[0m │
+│ Port      │ \x1b[33m${portStr.padEnd(26)}\x1b[0m │
+│ Studio    │ \x1b[33m${uiStr.padEnd(26)}\x1b[0m │
+│ Secret    │ \x1b[33m${secretStr.padEnd(26)}\x1b[0m │
+│ Warmed up │ \x1b[33m${warmedStr.padEnd(26)}\x1b[0m │${
+  !toolPort
+    ? `
+├───────────┴────────────────────────────┤
+│ \x1b[94mTip:\x1b[0m                                   |
+│ To start the Studio UI, run:           │
+│ pnpm start:studio                      │`
+    : ''
+}
+╰────────────────────────────────────────╯
+`;
+  console.log(tableStr);
+
+}, 250);
 
 // Clean up child process on exit
 process.on('SIGINT', () => {

@@ -389,18 +389,59 @@ body {
     color: var(--text-main);
 }
 
-#output {
+.code-box-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
     flex: 1;
-    background: #0f172a;
-    color: #a7f3d0;
+    min-height: 0;
+}
+
+.code-box {
+    flex: 1;
     padding: 16px;
     border-radius: 8px;
     font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
     font-size: 0.85rem;
     white-space: pre-wrap;
     word-break: break-all;
-    border: 1px solid #1e293b;
     overflow-y: auto;
+    margin: 0;
+}
+
+.copy-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(30, 41, 59, 0.8);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: var(--btn-hover);
+    color: var(--text-main);
+}
+
+#output, #output-curl, #output-fetch {
+    background: #0f172a;
+    color: #a7f3d0;
+    border: 1px solid #1e293b;
+}
+
+#output-placeholder {
+    background: var(--input-bg);
+    color: var(--text-muted);
+    border: 1px dashed var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Modal */
