@@ -157,25 +157,45 @@ document.addEventListener('DOMContentLoaded', () => {
         qDiv.className = 'question-card';
         
         qDiv.innerHTML = `
-            <div class="q-header">
-                <input type="text" class="form-input q-name" placeholder="Question Key (e.g. urgency)">
-                <button class="icon-btn remove-q" title="Remove Question" aria-label="Remove Question">
+            <div class="q-header" style="cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+                    <svg class="q-collapse-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    <input type="text" class="form-input q-name" placeholder="Question Key (e.g. urgency)" style="flex: 1;" onclick="event.stopPropagation()">
+                </div>
+                <button class="icon-btn remove-q" title="Remove Question" aria-label="Remove Question" onclick="event.stopPropagation()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            <div class="q-body">
-                <input type="text" class="form-input q-inst" placeholder="Instructions (e.g. How urgent is this?)">
-                <select class="form-select q-type">
-                    <option value="noul" selected>Noul</option>
-                    <option value="score">Score</option>
-                    <option value="choice">Choice</option>
-                </select>
+            <div class="q-content">
+                <div class="q-body" style="margin-top: 12px;">
+                    <input type="text" class="form-input q-inst" placeholder="Instructions (e.g. How urgent is this?)">
+                    <select class="form-select q-type">
+                        <option value="noul" selected>Noul</option>
+                        <option value="score">Score</option>
+                        <option value="choice">Choice</option>
+                    </select>
+                </div>
+                <div class="q-criteria-container"></div>
             </div>
-            <div class="q-criteria-container"></div>
         `;
 
         const typeSelect = qDiv.querySelector('.q-type');
         const criteriaContainer = qDiv.querySelector('.q-criteria-container');
+        
+        const qHeader = qDiv.querySelector('.q-header');
+        const qContent = qDiv.querySelector('.q-content');
+        const qIcon = qDiv.querySelector('.q-collapse-icon');
+
+        qHeader.addEventListener('click', () => {
+            qDiv.classList.toggle('collapsed');
+            if (qDiv.classList.contains('collapsed')) {
+                qContent.style.display = 'none';
+                qIcon.style.transform = 'rotate(-90deg)';
+            } else {
+                qContent.style.display = 'block';
+                qIcon.style.transform = 'rotate(0deg)';
+            }
+        });
         
         typeSelect.addEventListener('change', () => {
             renderCriteriaUI(typeSelect.value, criteriaContainer);
@@ -493,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const executeBtn = document.getElementById('execute-btn');
         
         executeBtn.style.opacity = '0.7';
-        executeBtn.style.transform = 'translate(-50%, -50%) scale(0.95)';
+        // executeBtn.style.transform = 'translate(-50%, -50%) scale(0.95)';
         
         outputEl.textContent = "Compiling payload and contacting Laya Router...";
         outputEl.style.display = 'block';
