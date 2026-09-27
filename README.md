@@ -197,3 +197,10 @@ You may want to use the [laya-node-client](https://github.com/felipenmoura/laya-
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+Get to know a little more about us:  
+
+- [BrazilJS](https://www.youtube.com/braziljs) channel and conference
+- [DEx01](https://dex01.com.br) company focused on web development, design/ux, research & insights and more.
+- [Felipe N. Moura](https://github.com/felipenmoura)
+
