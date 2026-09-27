@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (keys.length === 0) {
             savedTestsList.innerHTML = '<p style="text-align:center; color:var(--text-muted);">No saved tests found.</p>';
         } else {
-            keys.forEach(key => {
+            keys.reverse().forEach(key => {
                 const test = savedTests[key];
                 const div = document.createElement('div');
                 div.className = 'saved-test-item';
@@ -525,11 +525,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (qType === 'choice' && val.choice !== undefined) {
                     displayVal = val.choice;
                 } else if (qType === 'score' && val.score !== undefined) {
-                    const floored = Math.floor(val.score);
-                    if (val.legend && val.legend[floored] !== undefined) {
-                        displayVal = val.legend[floored];
+                    if (val.probabilities && val.legend) {
+                        let maxIndex = "0";
+                        let maxProb = -1;
+                        for (const idx in val.probabilities) {
+                            if (val.probabilities[idx] > maxProb) {
+                                maxProb = val.probabilities[idx];
+                                maxIndex = idx;
+                            }
+                        }
+                        if (val.legend[maxIndex] !== undefined) {
+                            displayVal = val.legend[maxIndex];
+                        } else {
+                            displayVal = val.score;
+                        }
                     } else {
-                        displayVal = val.score;
+                        const floored = Math.floor(val.score);
+                        if (val.legend && val.legend[floored] !== undefined) {
+                            displayVal = val.legend[floored];
+                        } else {
+                            displayVal = val.score;
+                        }
                     }
                 } else if (qType === 'noul' && val.noul !== undefined) {
                     displayVal = val.noul > 0.5 ? 'yes' : 'no';
@@ -701,6 +717,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ==========================================
+    // Keyboard Shortcuts
+    // ==========================================
+    const leftPanel = document.querySelector('.left-panel');
+    if (leftPanel) {
+        leftPanel.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                document.getElementById('execute-btn').click();
+            }
+        });
+    }
+
     // document.getElementById('test-btn').addEventListener('click', runPrediction);
     document.getElementById('execute-btn').addEventListener('click', runPrediction);
 });
+

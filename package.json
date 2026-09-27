@@ -1,7 +1,7 @@
 {
   "name": "@felipenmoura/laya-node",
-  "version": "1.0.5",
-  "description": "Node wrapper for laya text classification",
+  "version": "1.0.7",
+  "description": "Node wrapper and UI Studio for laya text classification",
   "license": "MIT",
   "author": "Felipe N. Moura",
   "main": "index.js",
@@ -24,7 +24,8 @@
     "javascript",
     "wrapper",
     "api",
-    "http"
+    "http",
+    "jev"
   ],
   "scripts": {
     "start": "node index.js",
