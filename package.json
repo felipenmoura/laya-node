@@ -6,6 +6,20 @@
   "author": "Felipe N. Moura",
   "main": "index.js",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "url": "https://github.com/felipenmoura/laya-node",
+    "type": "git"
+  },
+  "keywords": [
+    "laya",
+    "text classification",
+    "node",
+    "wrapper",
+    "api"
+  ],
   "scripts": {
     "start": "node index.js",
     "stop": "node index.js --stop",

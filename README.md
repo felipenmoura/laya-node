@@ -14,8 +14,9 @@ Laya is a non-autoregressive decision model designed for text classification, em
 ## Installation
 
 ```bash
-npm install
-# or
+git clone git@github.com:felipenmoura/laya-node.git
+cd laya-node
+
 pnpm install
 ```
 
