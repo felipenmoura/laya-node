@@ -85,6 +85,20 @@ npm run start:studio
 You can also start the studio at the same time with the main service:  
 `pnpm start --studio 4001`
 
+### Embedding Studio in an iframe (CORS & CSP)
+
+By default, the Studio blocks iframe embedding for security reasons. If you need to embed it in another dashboard, or access its API from another origin, you can supply a comma-separated list of allowed origins. This injects the proper CORS headers and `Content-Security-Policy: frame-ancestors` directives.
+
+Via CLI flag:
+```bash
+pnpm start:studio 4001 --cors "http://localhost:3000,https://my-dashboard.com"
+```
+
+Or via environment variable:
+```env
+STUDIO_CORS="http://localhost:3000,https://my-dashboard.com"
+```
+
 ### Running with Docker
 
 You can easily containerize this wrapper and run it anywhere using Docker. The included `Dockerfile` will automatically fetch the model weights during the build phase so container startups remain fast.

@@ -84,8 +84,34 @@ const PORT = process.env.PORT || 4000;
 const PYTHON_PORT = parseInt(PORT, 10) + 1; // dynamically assign python port based on node port
 const SECRET_API_KEY = process.env.SECRET_API_KEY;
 
+const corsArgIndex = process.argv.indexOf('--cors');
+const corsOrigins = corsArgIndex !== -1 && process.argv[corsArgIndex + 1]
+  ? process.argv[corsArgIndex + 1].split(',').map(s => s.trim())
+  : (process.env.STUDIO_CORS ? process.env.STUDIO_CORS.split(',').map(s => s.trim()) : []);
+
+function applyCorsAndCsp(app) {
+  if (corsOrigins.length > 0) {
+    app.use((req, res, next) => {
+      const origin = req.headers.origin || '*';
+      if (corsOrigins.includes(req.headers.origin) || corsOrigins.includes('*')) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      }
+      const cspOrigins = corsOrigins.join(' ');
+      res.header('Content-Security-Policy', `frame-ancestors ${cspOrigins}`);
+      
+      if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+      }
+      next();
+    });
+  }
+}
+
 if (isOnlyStudio) {
   const toolApp = express();
+  applyCorsAndCsp(toolApp);
   toolApp.use(express.static(path.join(__dirname, 'tool-ui')));
   toolApp.use(express.json());
 
@@ -257,6 +283,7 @@ server.on('error', (err) => {
 
 if (toolPort) {
   const toolApp = express();
+  applyCorsAndCsp(toolApp);
   toolApp.use(express.static(path.join(__dirname, 'tool-ui')));
   toolApp.use(express.json());
 
