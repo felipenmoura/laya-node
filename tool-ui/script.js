@@ -430,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function setupTableView(data, clientTimeElapsedSec) {
+    function setupTableView(data, clientTimeElapsedSec, questionsPayload) {
         if (!data) return;
         
         let html = '<table class="results-table">';
@@ -442,8 +442,29 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(answers).forEach(k => {
             hasAnswers = true;
             let val = answers[k];
-            if (typeof val === 'object') val = JSON.stringify(val);
-            html += `<tr><td>${k}</td><td>${val}</td></tr>`;
+            let displayVal = val;
+            
+            if (questionsPayload && questionsPayload[k] && typeof val === 'object' && val !== null) {
+                const qType = questionsPayload[k].type;
+                if (qType === 'choice' && val.choice !== undefined) {
+                    displayVal = val.choice;
+                } else if (qType === 'score' && val.score !== undefined) {
+                    const floored = Math.floor(val.score);
+                    if (val.legend && val.legend[floored] !== undefined) {
+                        displayVal = val.legend[floored];
+                    } else {
+                        displayVal = val.score;
+                    }
+                } else if (qType === 'noul' && val.noul !== undefined) {
+                    displayVal = val.noul > 0.5 ? 'yes' : 'no';
+                } else {
+                    displayVal = JSON.stringify(val);
+                }
+            } else if (typeof val === 'object' && val !== null) {
+                displayVal = JSON.stringify(val);
+            }
+            
+            html += `<tr><td>${k}</td><td style="text-transform: capitalize;">${displayVal}</td></tr>`;
         });
         
         if (!hasAnswers) {
@@ -568,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeElapsedSec = (endTime - startTime) / 1000;
             
             outputEl.textContent = JSON.stringify(data, null, 2);
-            setupTableView(data, timeElapsedSec);
+            setupTableView(data, timeElapsedSec, questionsPayload);
             
             // Default to table view
             resultsTableView.style.display = 'block';
