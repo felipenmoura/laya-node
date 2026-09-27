@@ -81,14 +81,25 @@ const uvicornExec = process.platform === 'win32'
   : path.join(venvPath, 'bin', 'uvicorn');
 
 // Check if venv exists, otherwise fallback to system python
-const useVenv = fs.existsSync(uvicornExec);
-const command = useVenv ? uvicornExec : 'uvicorn';
+const useVenv = fs.existsSync(pythonExec);
+const command = useVenv ? pythonExec : 'python3';
+const args = ['-m', 'uvicorn', 'server:app', '--port', PYTHON_PORT.toString()];
 
-console.log(`Starting python server via ${command}...`);
+console.log(`Starting python server via ${command} ${args.join(' ')}...`);
 
-const pythonProcess = spawn(command, ['server:app', '--port', PYTHON_PORT.toString()], {
+const pythonProcess = spawn(command, args, {
   cwd: __dirname,
   stdio: ['ignore', 'pipe', 'pipe']
+});
+
+pythonProcess.on('error', (err) => {
+  if (err.code === 'ENOENT') {
+    console.error(`\n\x1b[31m✖ Error: Could not find Python executable or uvicorn.\x1b[0m`);
+    console.error(`\x1b[33mPlease ensure you have run the setup or installed dependencies in the virtual environment.\x1b[0m\n`);
+  } else {
+    console.error(`\n\x1b[31m✖ Failed to start Python server:\x1b[0m ${err.message}\n`);
+  }
+  process.exit(1);
 });
 
 let warmedUp = false;
@@ -175,7 +186,7 @@ app.use('/', createProxyMiddleware({
   }
 }));
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Laya Node wrapper is running on http://localhost:${PORT}`);
   if (SECRET_API_KEY) {
     console.log(`API Key protection is ENABLED. Please send "Authorization: Bearer <your-key>"`);
@@ -201,6 +212,16 @@ app.listen(PORT, () => {
     `  }'\x1b[0m\n`;
 
   console.log(`\x1b[1mExample Request:\x1b[0m\n${curlExample}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n\x1b[31m✖ Error: Port ${PORT} is already in use.\x1b[0m`);
+    console.error(`\x1b[33mPlease ensure no other process is using this port, or specify a different PORT environment variable.\x1b[0m\n`);
+    process.exit(1);
+  } else {
+    console.error(`\n\x1b[31m✖ Server error:\x1b[0m`, err.message, '\n');
+  }
 });
 
 // Clean up child process on exit

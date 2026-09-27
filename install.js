@@ -117,11 +117,11 @@ async function runSetup() {
       }
       
       spinner.text = 'Installing dependencies (laya, fastapi, uvicorn)...';
-      const pipCommand = process.platform === 'win32' 
-        ? path.join(venvPath, 'Scripts', 'pip')
-        : path.join(venvPath, 'bin', 'pip');
+      const pythonCommand = process.platform === 'win32' 
+        ? path.join(venvPath, 'Scripts', 'python')
+        : path.join(venvPath, 'bin', 'python');
         
-      await execAsync(`${pipCommand} install fastapi uvicorn laya`, { cwd: __dirname });
+      await execAsync(`"${pythonCommand}" -m pip install fastapi uvicorn laya`, { cwd: __dirname });
       spinner.succeed('Setup complete!');
     } catch (error) {
       spinner.fail('Setup failed during python environment creation or pip install.');
