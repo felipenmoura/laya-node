@@ -434,21 +434,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // Execution and Results View
     // ==========================================
-    const toggleViewBtn = document.getElementById('toggle-view-btn');
+    const resultsViewRadios = document.getElementById('results-view-radios');
+    const radioInputs = document.querySelectorAll('input[name="results-view"]');
     const resultsTableView = document.getElementById('results-table-view');
     const outputEl = document.getElementById('output');
+    const outputCurl = document.getElementById('output-curl');
+    const outputFetch = document.getElementById('output-fetch');
+    const outputPlaceholder = document.getElementById('output-placeholder');
 
-    toggleViewBtn.addEventListener('click', () => {
-        if (resultsTableView.style.display === 'none') {
-            resultsTableView.style.display = 'block';
-            outputEl.style.display = 'none';
-            toggleViewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Show Source';
-        } else {
-            resultsTableView.style.display = 'none';
-            outputEl.style.display = 'block';
-            toggleViewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg> Show Table';
-        }
+    radioInputs.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const val = e.target.value;
+            resultsTableView.style.display = val === 'answers' ? 'block' : 'none';
+            outputEl.style.display = val === 'source' ? 'block' : 'none';
+            outputCurl.style.display = val === 'curl' ? 'block' : 'none';
+            outputFetch.style.display = val === 'fetch' ? 'block' : 'none';
+        });
     });
+
+    function setupCodeSnippets(statePayload, questionsPayload) {
+        const payloadStr = JSON.stringify({
+            state: statePayload || "Sample state text",
+            questions: questionsPayload
+        }, null, 2);
+
+        // Curl
+        const curlSnippet = `curl -X POST http://localhost:3000/predict \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_SECRET_API_KEY" \\
+  -d '${payloadStr.replace(/'/g, "'\\''")}'`;
+        outputCurl.textContent = curlSnippet;
+
+        // Fetch
+        const fetchSnippet = `fetch('http://localhost:3000/predict', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_SECRET_API_KEY'
+  },
+  body: JSON.stringify(${payloadStr.replace(/\n/g, '\n  ')})
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));`;
+        outputFetch.textContent = fetchSnippet;
+    }
 
     function setupTableView(data, clientTimeElapsedSec, questionsPayload) {
         if (!data) return;
@@ -515,10 +545,13 @@ document.addEventListener('DOMContentLoaded', () => {
         executeBtn.style.opacity = '0.7';
         // executeBtn.style.transform = 'translate(-50%, -50%) scale(0.95)';
         
-        outputEl.textContent = "Compiling payload and contacting Laya Router...";
-        outputEl.style.display = 'block';
+        outputPlaceholder.textContent = "Compiling payload and contacting Laya Router...";
+        outputPlaceholder.style.display = 'block';
         resultsTableView.style.display = 'none';
-        toggleViewBtn.style.display = 'none';
+        outputEl.style.display = 'none';
+        outputCurl.style.display = 'none';
+        outputFetch.style.display = 'none';
+        resultsViewRadios.style.display = 'none';
 
         // Extract State Payload
         let statePayload;
@@ -610,24 +643,31 @@ document.addEventListener('DOMContentLoaded', () => {
             
             outputEl.textContent = JSON.stringify(data, null, 2);
             setupTableView(data, timeElapsedSec, questionsPayload);
+            setupCodeSnippets(statePayload, questionsPayload);
             
             // Default to table view
+            document.querySelector('input[name="results-view"][value="answers"]').checked = true;
             resultsTableView.style.display = 'block';
             outputEl.style.display = 'none';
-            toggleViewBtn.style.display = 'flex';
-            toggleViewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Show Source';
+            outputCurl.style.display = 'none';
+            outputFetch.style.display = 'none';
+            outputPlaceholder.style.display = 'none';
+            resultsViewRadios.style.display = 'flex';
 
         } catch (err) {
-            outputEl.style.display = 'block';
+            outputPlaceholder.style.display = 'block';
             resultsTableView.style.display = 'none';
-            toggleViewBtn.style.display = 'none';
-            outputEl.textContent = `Error: ${err.message}`;
+            outputEl.style.display = 'none';
+            outputCurl.style.display = 'none';
+            outputFetch.style.display = 'none';
+            resultsViewRadios.style.display = 'none';
+            outputPlaceholder.textContent = `Error: ${err.message}`;
         } finally {
             executeBtn.style.opacity = '1';
             executeBtn.style.transform = '';
         }
     }
 
-    document.getElementById('test-btn').addEventListener('click', runPrediction);
+    // document.getElementById('test-btn').addEventListener('click', runPrediction);
     document.getElementById('execute-btn').addEventListener('click', runPrediction);
 });
