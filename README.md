@@ -66,6 +66,20 @@ pnpm stop
 npm run stop
 ```
 
+### Running with Docker
+
+You can easily containerize this wrapper and run it anywhere using Docker. The included `Dockerfile` will automatically fetch the model weights during the build phase so container startups remain fast.
+
+To build the image:
+```bash
+docker build -t laya-node-wrapper .
+```
+
+To run the container (exposing port 4000):
+```bash
+docker run -p 4000:4000 -e SECRET_API_KEY="my-secure-key" laya-node-wrapper
+```
+
 ## Making Predictions
 
 Once running, send a `POST` request to `/predict`. Be sure to include your Bearer token if you enabled API Key protection during setup.
