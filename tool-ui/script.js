@@ -40,20 +40,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // State UI Management
     // ==========================================
-    const stateTypeSelect = document.getElementById('state-type');
+    const stateTypeRadios = document.querySelectorAll('input[name="state-type"]');
     const stateTextContainer = document.getElementById('state-text-container');
     const stateObjectContainer = document.getElementById('state-object-container');
     const addKvBtn = document.getElementById('add-kv-btn');
     const kvPairsContainer = document.getElementById('kv-pairs');
 
-    stateTypeSelect.addEventListener('change', (e) => {
-        if (e.target.value === 'text') {
-            stateTextContainer.classList.add('active');
-            stateObjectContainer.classList.remove('active');
-        } else {
-            stateTextContainer.classList.remove('active');
-            stateObjectContainer.classList.add('active');
-        }
+    function getStateType() {
+        const checked = document.querySelector('input[name="state-type"]:checked');
+        return checked ? checked.value : 'text';
+    }
+
+    stateTypeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'text') {
+                stateTextContainer.classList.add('active');
+                stateObjectContainer.classList.remove('active');
+            } else {
+                stateTextContainer.classList.remove('active');
+                stateObjectContainer.classList.add('active');
+            }
+        });
     });
 
     function createKvPair() {
@@ -346,8 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('test-name').value = test.name || '';
         document.getElementById('test-description').value = test.description || '';
         
-        stateTypeSelect.value = test.stateType || 'text';
-        stateTypeSelect.dispatchEvent(new Event('change'));
+        const typeValue = test.stateType || 'text';
+        const typeRadio = document.querySelector(`input[name="state-type"][value="${typeValue}"]`);
+        if (typeRadio) {
+            typeRadio.checked = true;
+            typeRadio.dispatchEvent(new Event('change'));
+        }
         
         if (test.stateType === 'text') {
             document.getElementById('state-text-input').value = test.state || '';
@@ -401,19 +412,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // Execution
+    // Execution and Results View
     // ==========================================
+    const toggleViewBtn = document.getElementById('toggle-view-btn');
+    const resultsTableView = document.getElementById('results-table-view');
+    const outputEl = document.getElementById('output');
+
+    toggleViewBtn.addEventListener('click', () => {
+        if (resultsTableView.style.display === 'none') {
+            resultsTableView.style.display = 'block';
+            outputEl.style.display = 'none';
+            toggleViewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Show Source';
+        } else {
+            resultsTableView.style.display = 'none';
+            outputEl.style.display = 'block';
+            toggleViewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg> Show Table';
+        }
+    });
+
+    function setupTableView(data, clientTimeElapsedSec) {
+        if (!data) return;
+        
+        let html = '<table class="results-table">';
+        html += '<thead><tr><th>Question Key</th><th>Answer</th></tr></thead><tbody>';
+        
+        let hasAnswers = false;
+        const answers = data.answers || {};
+        
+        Object.keys(answers).forEach(k => {
+            hasAnswers = true;
+            let val = answers[k];
+            if (typeof val === 'object') val = JSON.stringify(val);
+            html += `<tr><td>${k}</td><td>${val}</td></tr>`;
+        });
+        
+        if (!hasAnswers) {
+            html += `<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No answers found in response.</td></tr>`;
+        }
+        html += '</tbody></table>';
+
+        let tokens = 'N/A';
+        if (data.usage && typeof data.usage.input_tokens === 'number' && typeof data.usage.output_tokens === 'number') {
+            tokens = data.usage.input_tokens + data.usage.output_tokens;
+        } else if (data.tokens || data.tokens_used) {
+            tokens = data.tokens || data.tokens_used;
+        }
+        
+        const time = clientTimeElapsedSec ? clientTimeElapsedSec.toFixed(2) : 'N/A';
+        
+        html += `<div class="results-meta">
+            <span><strong>Tokens:</strong> ${tokens}</span>
+            <span><strong>Time elapsed:</strong> ${time}s</span>
+        </div>`;
+        
+        resultsTableView.innerHTML = html;
+    }
+
     async function runPrediction() {
-        const outputEl = document.getElementById('output');
         const executeBtn = document.getElementById('execute-btn');
         
         executeBtn.style.opacity = '0.7';
         executeBtn.style.transform = 'translate(-50%, -50%) scale(0.95)';
+        
         outputEl.textContent = "Compiling payload and contacting Laya Router...";
+        outputEl.style.display = 'block';
+        resultsTableView.style.display = 'none';
+        toggleViewBtn.style.display = 'none';
 
         // Extract State Payload
         let statePayload;
-        if (stateTypeSelect.value === 'text') {
+        if (getStateType() === 'text') {
             statePayload = document.getElementById('state-text-input').value;
         } else {
             statePayload = {};
@@ -470,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
             savedTests[nameInput] = {
                 name: nameInput,
                 description: descriptionInput,
-                stateType: stateTypeSelect.value,
+                stateType: getStateType(),
                 state: statePayload,
                 questions: questionsPayload
             };
@@ -478,6 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            const startTime = performance.now();
+
             const response = await fetch('/api/predict', {
                 method: 'POST',
                 headers: {
@@ -494,8 +564,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
+            const endTime = performance.now();
+            const timeElapsedSec = (endTime - startTime) / 1000;
+            
             outputEl.textContent = JSON.stringify(data, null, 2);
+            setupTableView(data, timeElapsedSec);
+            
+            // Default to table view
+            resultsTableView.style.display = 'block';
+            outputEl.style.display = 'none';
+            toggleViewBtn.style.display = 'flex';
+            toggleViewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Show Source';
+
         } catch (err) {
+            outputEl.style.display = 'block';
+            resultsTableView.style.display = 'none';
+            toggleViewBtn.style.display = 'none';
             outputEl.textContent = `Error: ${err.message}`;
         } finally {
             executeBtn.style.opacity = '1';

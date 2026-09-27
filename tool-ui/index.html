@@ -55,10 +55,14 @@
                 <div class="section">
                     <div class="section-header">
                         <h3>State</h3>
-                        <select id="state-type" class="form-select">
-                            <option value="text">Text</option>
-                            <option value="object">Object</option>
-                        </select>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="state-type" value="text" checked> Text
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="state-type" value="object"> Object
+                            </label>
+                        </div>
                     </div>
                     
                     <div id="state-text-container" class="state-container active">
@@ -107,7 +111,11 @@
             </div>
 
             <div class="panel right-panel">
-                <h2>Analysis & Results</h2>
+                <div class="section-header" style="margin-bottom: 20px;">
+                    <h2 style="margin-bottom: 0;">Analysis & Results</h2>
+                    <button id="toggle-view-btn" class="secondary-btn" style="display: none;">Show Source</button>
+                </div>
+                <div id="results-table-view" style="display: none;"></div>
                 <pre id="output">Run a test to see the output here...</pre>
             </div>
         </main>
