@@ -37,6 +37,9 @@ if (process.argv.includes('--stop')) {
 
 const isDaemonArg = process.argv.includes('-D');
 const isDaemonChild = process.argv.includes('--is-daemon-child');
+const toolArgIndex = process.argv.indexOf('--tool');
+const toolPort = toolArgIndex !== -1 ? parseInt(process.argv[toolArgIndex + 1], 10) : null;
+
 
 if (isDaemonArg) {
   const childArgs = process.argv.slice(2).filter(a => a !== '-D');
@@ -223,6 +226,35 @@ server.on('error', (err) => {
     console.error(`\n\x1b[31m✖ Server error:\x1b[0m`, err.message, '\n');
   }
 });
+
+if (toolPort) {
+  const toolApp = express();
+  toolApp.use(express.static(path.join(__dirname, 'tool-ui')));
+  toolApp.use(express.json());
+
+  toolApp.post('/api/predict', async (req, res) => {
+    try {
+      const fetchParams = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body)
+      };
+      if (SECRET_API_KEY) {
+        fetchParams.headers['Authorization'] = `Bearer ${SECRET_API_KEY}`;
+      }
+      
+      const response = await fetch(`http://127.0.0.1:${PORT}/predict`, fetchParams);
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to communicate with Laya server.', details: err.message });
+    }
+  });
+
+  toolApp.listen(toolPort, () => {
+    console.log(`\x1b[32m✔ UI Tool is running on http://localhost:${toolPort}\x1b[0m\n`);
+  });
+}
 
 // Clean up child process on exit
 process.on('SIGINT', () => {
