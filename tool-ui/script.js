@@ -563,7 +563,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 }[tag] || tag));
             }
             
-            html += `<tr><td>${escapeHTML(String(k))}</td><td style="text-transform: capitalize;">${escapeHTML(String(displayVal))}</td></tr>`;
+            let detailsHtml = '';
+            if (val && typeof val === 'object' && val.probabilities) {
+                let listItems = '';
+                const sortedKeys = Object.keys(val.probabilities).sort((a, b) => val.probabilities[b] - val.probabilities[a]);
+                let isFirst = true;
+                for (const idx of sortedKeys) {
+                    const probValue = val.probabilities[idx] * 100;
+                    const prob = probValue.toFixed(1) + '%';
+                    const label = (val.legend && val.legend[idx]) || idx;
+                    
+                    let barColor = '#007bff'; // blue
+                    if (isFirst) {
+                        barColor = '#28a745'; // green
+                        isFirst = false;
+                    }
+                    if (probValue < 10) {
+                        barColor = '#dc3545'; // red
+                    }
+
+                    const barHtml = `
+                        <div style="flex: 1; margin: 0 12px; background: rgba(128, 128, 128, 0.2); height: 8px; border-radius: 4px; overflow: hidden; display: flex; align-items: center;">
+                            <div style="width: ${prob}; height: 100%; background: ${barColor}; border-radius: 4px;"></div>
+                        </div>
+                    `;
+
+                    listItems += `<li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="flex: 0 0 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(String(label))}</span>
+                        ${barHtml}
+                        <strong style="flex: 0 0 50px; text-align: right;">${prob}</strong>
+                    </li>`;
+                }
+                if (listItems) {
+                    detailsHtml = `
+                        <div class="answer-details" style="display: none; margin-top: 12px; font-size: 0.9em; background: var(--panel-bg); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                ${listItems}
+                            </ul>
+                        </div>
+                    `;
+                }
+            }
+
+            let mainDisplay = escapeHTML(String(displayVal));
+            if (detailsHtml) {
+                mainDisplay = `
+                    <div style="display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" class="toggle-details-container">
+                            <span style="text-transform: capitalize;">${mainDisplay}</span>
+                            <button class="icon-btn toggle-details-btn" title="Toggle Details" aria-label="Toggle Details" style="padding: 2px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </button>
+                        </div>
+                        ${detailsHtml}
+                    </div>
+                `;
+                html += `<tr><td>${escapeHTML(String(k))}</td><td>${mainDisplay}</td></tr>`;
+            } else {
+                html += `<tr><td>${escapeHTML(String(k))}</td><td style="text-transform: capitalize;">${mainDisplay}</td></tr>`;
+            }
         });
         
         if (!hasAnswers) {
@@ -586,6 +644,20 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
         
         resultsTableView.innerHTML = html;
+
+        resultsTableView.querySelectorAll('.toggle-details-container').forEach(container => {
+            container.addEventListener('click', (e) => {
+                const details = container.nextElementSibling;
+                const icon = container.querySelector('svg');
+                if (details.style.display === 'none') {
+                    details.style.display = 'block';
+                    icon.style.transform = 'rotate(-180deg)';
+                } else {
+                    details.style.display = 'none';
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
     }
 
     async function runPrediction() {
