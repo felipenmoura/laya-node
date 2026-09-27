@@ -37,7 +37,7 @@ async function runSetup() {
     {
       type: 'input',
       name: 'port',
-      message: 'What port should the Express server run on?',
+      message: 'The port for the HTTP service',
       default: currentPort
     },
     {
@@ -53,20 +53,27 @@ async function runSetup() {
     {
       type: 'input',
       name: 'customApiKey',
-      message: 'Enter your SECRET_API_KEY:',
+      message: 'Enter the SECRET_API_KEY:',
       when: (answers) => answers.apiKeyChoice === 'custom'
     },
     {
-      type: 'confirm',
+      type: 'select',
       name: 'setupPython',
-      message: 'Do you want to automatically setup the python environment (venv) and install laya?',
-      default: true
+      message: 'Setup all dependencies (python env, laya, etc)?',
+      choices: [
+        { name: 'Yes, do your thing', value: true },
+        { name: 'No, I will set them up manually myself', value: false },
+        { name: 'No, I already have everything set up', value: false },
+      ]
     },
     {
-      type: 'confirm',
+      type: 'select',
       name: 'downloadModel',
-      message: 'Do you want to download the Laya model immediately?',
-      default: true
+      message: 'Download the model immediately or during first use?',
+      choices: [
+        { name: 'Yes, download it now', value: true },
+        { name: 'No, download it when the service starts for the first time', value: false },
+      ]
     }
   ]);
 

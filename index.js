@@ -8,6 +8,63 @@ import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const pidFile = path.join(__dirname, '.daemon.pid');
+
+if (process.argv.includes('--stop')) {
+  if (fs.existsSync(pidFile)) {
+    const pid = parseInt(fs.readFileSync(pidFile, 'utf8'), 10);
+    try {
+      process.kill(pid, 'SIGTERM');
+      console.log(`\n\x1b[32m✔ Successfully stopped Laya daemon (PID ${pid}).\x1b[0m\n`);
+    } catch (e) {
+      if (e.code === 'ESRCH') {
+        console.log(`\n\x1b[33m⚠ Daemon process (PID ${pid}) was not running.\x1b[0m\n`);
+      } else {
+        console.error(`\n\x1b[31m✖ Failed to stop daemon:\x1b[0m`, e.message, '\n');
+      }
+    }
+
+    try {
+      fs.unlinkSync(pidFile);
+    } catch (e) {
+      // it was probably removed by the processs that finished
+    }
+  } else {
+    console.log(`\n\x1b[33m⚠ No daemon PID file found. Is the server running in the background?\x1b[0m\n`);
+  }
+  process.exit(0);
+}
+
+const isDaemonArg = process.argv.includes('-D');
+const isDaemonChild = process.argv.includes('--is-daemon-child');
+
+if (isDaemonArg) {
+  const childArgs = process.argv.slice(2).filter(a => a !== '-D');
+  childArgs.push('--is-daemon-child');
+
+  const child = spawn(process.execPath, [__filename, ...childArgs], {
+    detached: true,
+    stdio: ['ignore', 'inherit', 'inherit', 'ipc']
+  });
+
+  fs.writeFileSync(pidFile, child.pid.toString());
+
+  child.on('message', (msg) => {
+    if (msg === 'WARMUP_COMPLETE') {
+      console.log('\n\x1b[35m[Daemon] Disconnecting from terminal. Laya is now running in the background.\x1b[0m\n');
+      child.disconnect();
+      child.unref();
+      process.exit(0);
+    }
+  });
+
+  child.on('exit', (code) => {
+    process.exit(code || 0);
+  });
+
+  // Suspend the parent process from running the actual server logic
+  await new Promise(() => {});
+}
 
 const PORT = process.env.PORT || 4000;
 const PYTHON_PORT = parseInt(PORT, 10) + 1; // dynamically assign python port based on node port
@@ -54,6 +111,9 @@ async function warmupModel() {
     
     if (res.ok) {
       console.log('\n\x1b[32m✔ Laya model is warmed up and the HTTP service is ready to receive requests!\x1b[0m\n');
+      if (isDaemonChild && process.send) {
+        process.send('WARMUP_COMPLETE');
+      }
     } else {
       console.log('\x1b[33m⚠ Model warmup returned a non-OK status, but the server is running.\x1b[0m\n');
     }
@@ -146,10 +206,12 @@ app.listen(PORT, () => {
 // Clean up child process on exit
 process.on('SIGINT', () => {
   pythonProcess.kill('SIGINT');
+  if (isDaemonChild && fs.existsSync(pidFile)) fs.unlinkSync(pidFile);
   process.exit();
 });
 
 process.on('SIGTERM', () => {
   pythonProcess.kill('SIGTERM');
+  if (isDaemonChild && fs.existsSync(pidFile)) fs.unlinkSync(pidFile);
   process.exit();
 });

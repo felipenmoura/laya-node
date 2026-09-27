@@ -2,10 +2,12 @@
   "name": "laya-node",
   "version": "1.0.0",
   "description": "Node wrapper for laya text classification",
+  "license": "MIT",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
+    "stop": "node index.js --stop",
     "postinstall": "node install.js"
   },
   "dependencies": {

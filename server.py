@@ -22,8 +22,9 @@ def predict(req: PredictRequest):
     kwargs = {}
     if req.model is not None:
         kwargs["model"] = req.model
-    if req.max_len is not None:
-        kwargs["max_len"] = req.max_len
+        
+    max_len = req.max_len if req.max_len is not None else int(os.getenv("MAX_LEN", 8192))
+    kwargs["max_len"] = max_len
         
     result = router.predict(req.state, req.questions, **kwargs)
     return result
