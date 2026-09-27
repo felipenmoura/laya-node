@@ -1,6 +1,6 @@
 # Laya Node Wrapper
 
-The Node.js wrapper for running the [Laya Text Classification Model](https://huggingface.co/convaiinnovations/laya).
+The Node.js wrapper for running the [Laya Text Classification Model](https://huggingface.co/convaiinnovations/laya), the multilingual, non-autoregressive System 1 decision model for AI (for artificial inteligence).
 
 Laya is a non-autoregressive decision model designed for text classification, email triage, and moderation. This package exposes Laya's API through an Express HTTP server, allowing you to easily integrate it into your Node.js applications while matching the exact Python API structure natively.
 
