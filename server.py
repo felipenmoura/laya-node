@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 import os
 
 from laya import Router
@@ -12,7 +12,7 @@ preload = os.environ.get("LAYA_PRELOAD", "false").lower() == "true"
 router = Router(preload=preload)
 
 class PredictRequest(BaseModel):
-    state: str
+    state: Union[str, Dict[str, Any]]
     questions: Dict[str, Any]
     model: Optional[str] = None
     max_len: Optional[int] = None
