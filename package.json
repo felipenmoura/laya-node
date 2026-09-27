@@ -1,6 +1,6 @@
 {
   "name": "@felipenmoura/laya-node",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Node wrapper for laya text classification",
   "license": "MIT",
   "author": "Felipe N. Moura",

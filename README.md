@@ -18,6 +18,9 @@ In the end, this works as an **alternative to Jev**.
 
 <img width="1992" height="1042" alt="image" src="https://github.com/user-attachments/assets/d82168fd-56e3-42c7-b276-795dc97105b3" />
 
+
+
+
 ## Installation
 
 ```bash
@@ -189,6 +192,10 @@ curl -X POST http://localhost:4000/predict \
   }
 }
 ```
+
+## Using the laya-node-client
+
+You may want to use the [laya-node-client](https://github.com/felipenmoura/laya-node-client) to help you make predictions to your laya-node server.
 
 ## License
 
