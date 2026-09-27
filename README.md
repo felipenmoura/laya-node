@@ -16,8 +16,7 @@ In the end, this works as an **alternative to Jev**.
 - **Clean CLI UX**: Smooth cli experience.
 - **Studio**: A full featured Studio UI to test your prompts and schemas
 
-<img width="1993" height="1193" alt="image" src="https://github.com/user-attachments/assets/e8065abd-ef48-4a4c-8640-39d542da5874" />
-
+<img width="1991" height="1197" alt="image" src="https://github.com/user-attachments/assets/3e968075-6a88-4513-9402-6b998abdfefb" />
 
 ## Installation
 
