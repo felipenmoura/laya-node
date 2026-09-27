@@ -99,6 +99,17 @@ Or via environment variable:
 STUDIO_CORS="http://localhost:3000,https://my-dashboard.com"
 ```
 
+### Securing the Studio with a WAF
+
+**Important Security Notice:** The Studio UI automatically injects your `SECRET_API_KEY` into requests to the main Laya service to make testing seamless. This means that anyone who can access the Studio port can run predictions without knowing the secret key!
+
+If you are exposing the Studio to the internet or embedding it into an external dashboard, it is highly recommended to place it behind a Web Application Firewall (WAF) or a secure reverse proxy (like NGINX, Cloudflare Access, or AWS WAF).
+
+Best practices for shielding the Studio:
+1. **IP Whitelisting:** Restrict access to the Studio port so only authorized internal IPs or dashboard servers can reach it.
+2. **Basic Authentication:** Use a reverse proxy to add HTTP Basic Authentication or Single Sign-On (SSO) in front of the Studio UI.
+3. **Rate Limiting & WAF Rules:** Configure your WAF to block malicious payloads and rate-limit requests to the Studio endpoint to prevent abuse or denial-of-service.
+
 ### Running with Docker
 
 You can easily containerize this wrapper and run it anywhere using Docker. The included `Dockerfile` will automatically fetch the model weights during the build phase so container startups remain fast.

@@ -540,7 +540,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayVal = JSON.stringify(val);
             }
             
-            html += `<tr><td>${k}</td><td style="text-transform: capitalize;">${displayVal}</td></tr>`;
+            function escapeHTML(str) {
+                if (typeof str !== 'string') return str;
+                return str.replace(/[&<>'"]/g, tag => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+                }[tag] || tag));
+            }
+            
+            html += `<tr><td>${escapeHTML(String(k))}</td><td style="text-transform: capitalize;">${escapeHTML(String(displayVal))}</td></tr>`;
         });
         
         if (!hasAnswers) {
