@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y curl && \
 WORKDIR /app
 
 # Copy package configurations
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* install.js ./
 
 # Install node dependencies
 # (The postinstall script automatically skips the interactive python setup in Docker)
